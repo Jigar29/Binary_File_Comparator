@@ -25,56 +25,34 @@
 
 #define FILE_READ_BUFFER_SIZE 1024
 
-
-
 int main( int argc, char *argv[]) {
 
 	// Variable declarations
-	FILE* file1_ptr, *file2_ptr;
-	int return_status = EXIT_SUCCESS;
-	//This variable is used to declare
+	FILE *file1_ptr = NULL, *file2_ptr = NULL;
 	int64_t global_file_index= 1;
 	int64_t file1_length = 0, file2_length = 0;
-
 	clock_t start_time;
 
 	// Temp buffers to store the data fetched from the files
 	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE+1, sizeof(char));
 	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE+1, sizeof(char));
 
-
 	// Error check for the file1 existance
-//	file1_ptr = fopen(argv[1],"r");
-
-	file1_ptr = fopen("file_1.bin", "r");
-	if(file1_ptr == NULL)
-	{
-		printf("No such file found in the directory. Please close the console and try again.\n");
-		return_status=  EXIT_FAILURE;
-		goto forced_exit;
-	}
-
-//	file2_ptr = fopen(argv[2],"r");
-	file2_ptr = fopen("file_2.bin", "r");
-	if(file2_ptr == NULL)
-	{
-		printf("No such file found in the directory. Please close the console and try again.\n");
-		fclose(file1_ptr);
-		return_status=  EXIT_FAILURE;
-		goto forced_exit;
-	}
+	if(openFile(&file1_ptr,"file_1.bin", "r") == RETURN_FAIL)
+		return EXIT_FAILURE;
+	if(openFile(&file2_ptr,"file_2.bin", "r") == RETURN_FAIL)
+		return EXIT_FAILURE;
 
 	file1_length = getFilesize(file1_ptr);
 	file2_length = getFilesize(file2_ptr);
 
 	// Starting the clock to count number of seconds this routine take to perform comparision
 	start_time = clock();
-	printf("***************************************************REsult**************************************************\n");
 
 	if(file1_length != file2_length)
 	{
-		printf("File Size are not same;  File 1 length is : %I64d\n\t\t\t File 2 Length is : %I64d\n", file1_length, file2_length);
-		return 0;
+		printf("File Size are not same;  File 1 length is : %I64d Bytes\n\t\t\t File 2 Length is : %I64d Bytes\n", file1_length, file2_length);
+		return EXIT_FAILURE;
 	}
 	// Actual implementation starts here
 	while((!feof(file1_ptr)) && (!feof(file2_ptr)))
@@ -85,18 +63,16 @@ int main( int argc, char *argv[]) {
 		{
 			if(temp_buffer1[i] != temp_buffer2[i])
 			{
-				printf("Output : Files are not same, First most difference is at %I64d position\n", global_file_index+i);
-				if((temp_buffer1[i] != '\0') && (temp_buffer2[i] != '\0'))
-					printf("Reason : First Different character in both the files is \n\t file1 = '%x'%x, file2 = '%x'%x\n", temp_buffer1[i], temp_buffer1[i+1], temp_buffer2[i], temp_buffer2[i+1]);
-				else
-					printf("Reason : File Size are not equal.\n");
+				printf("Output : Files are not same, First most difference is at 0x%I64x position\n", global_file_index+i);
+				printf("Reason : First Different character in both the files is \n\t file1 = '%x'%x, file2 = '%x'%x\n", temp_buffer1[i], temp_buffer1[i+1], temp_buffer2[i], temp_buffer2[i+1]);
+
 				goto exit;
 			}
 		}
 		global_file_index = global_file_index + FILE_READ_BUFFER_SIZE;
 	}
 	printf("Output : Files are Exactly same\n");
-
+	printf("Output : Files are not same, First most difference is at 0x%I64x position\n", global_file_index);
 exit:fclose(file1_ptr);		// Closing the files to make the files available for later use succesfully
 	 fclose(file2_ptr);
 	 // Freeing all the created memory to prevent stack overflow
@@ -105,6 +81,5 @@ exit:fclose(file1_ptr);		// Closing the files to make the files available for la
 
 	 printf("\n\nTotal Time taken for the computations is %lf seconds", ((double)(clock() - start_time)/ CLOCKS_PER_SEC));
 
-forced_exit:	 //getch();
-	 	 	 	 return return_status;
+	 return EXIT_SUCCESS;
 }

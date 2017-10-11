@@ -10,8 +10,11 @@
 
 #include "stdio.h"
 #include <stdint-gcc.h>
+#include <stdbool.h>
+#include "general_defines.h"
 
-int64_t getFilesize(FILE *fptr);
+RET_STATUS openFile(FILE **, char *, char *);
+int64_t getFilesize(FILE *);
 
 
 #endif /* FILE_OP_H_ */

@@ -7,6 +7,18 @@
 
 #include "file_op.h"
 
+RET_STATUS openFile(FILE **fptr, char *file_name, char *mode)
+{
+	*fptr = fopen(file_name, mode);
+	if(*fptr == NULL)
+	{
+		printf("No such file found in the directory. Please Try Again\n");
+		return RETURN_FAIL;
+	}
+	else
+		return RETURN_SUCCESS;
+}
+
 int64_t getFilesize(FILE *fptr)
 {
 	int64_t file_lenght = 0;
