@@ -54,11 +54,25 @@ int main( int argc, char *argv[]) {
 		printf("File Size are not same;  File 1 length is : %I64d Bytes\n\t\t\t File 2 Length is : %I64d Bytes\n", file1_length, file2_length);
 		return EXIT_FAILURE;
 	}
+	else
+		printf("File Size is same;  File length is : %I64d Bytes\n", file1_length);
+
 	// Actual implementation starts here
 	while((!feof(file1_ptr)) && (!feof(file2_ptr)))
 	{
-		fgets(&temp_buffer1[0],FILE_READ_BUFFER_SIZE, file1_ptr);
-		fgets(&temp_buffer2[0],FILE_READ_BUFFER_SIZE, file2_ptr);
+		if((file1_length- global_file_index) >= FILE_READ_BUFFER_SIZE)
+		{
+			fgets(&temp_buffer1[0],FILE_READ_BUFFER_SIZE, file1_ptr);
+			fgets(&temp_buffer2[0],FILE_READ_BUFFER_SIZE, file2_ptr);
+		}
+		else
+		{
+			for(int i=0; i<(file1_length- global_file_index);i++)
+			{
+				temp_buffer1[i] = fgetc(file1_ptr);
+				temp_buffer2[i] = fgetc(file2_ptr);
+			}
+		}
 		for(int i =0; i<FILE_READ_BUFFER_SIZE; i++)
 		{
 			if(temp_buffer1[i] != temp_buffer2[i])
@@ -69,6 +83,7 @@ int main( int argc, char *argv[]) {
 				goto exit;
 			}
 		}
+
 		global_file_index = global_file_index + FILE_READ_BUFFER_SIZE;
 	}
 	printf("Output : Files are Exactly same\n");
