@@ -41,7 +41,7 @@ int main( int argc, char *argv[]) {
 		goto forced_exit;
 	}
 
-	file2_ptr = fopen(argv[1],"r");
+	file2_ptr = fopen(argv[2],"r");
 	if(file2_ptr == NULL)
 	{
 		printf("No such file found in the directory. Please close the console and try again.\n");
