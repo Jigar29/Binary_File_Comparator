@@ -22,7 +22,6 @@ int main( int argc, char *argv[]) {
 
 	// Variable declarations
 	FILE* file1_ptr, *file2_ptr;
-	char file1_path[50]= "", file2_path[50]="";
 	int return_status = EXIT_SUCCESS;
 	//This variable is used to declare
 	int64_t global_file_index= 1;
@@ -34,21 +33,15 @@ int main( int argc, char *argv[]) {
 	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE+1, sizeof(char));
 
 	// Error check for the file1 existance
-	printf("Please Enter the first File\n");
-	scanf("%s", &file1_path[0]);
-	file1_ptr = fopen(&file1_path[0],"r");
+	file1_ptr = fopen(argv[1],"r");
 	if(file1_ptr == NULL)
 	{
 		printf("No such file found in the directory. Please close the console and try again.\n");
 		return_status=  EXIT_FAILURE;
 		goto forced_exit;
 	}
-	// Error check for the file2 existance
-	printf("Please Enter the Second File\n");
-	scanf("%s", &file2_path[0]);
-	printf("\n");
 
-	file2_ptr = fopen(&file2_path[0],"r");
+	file2_ptr = fopen(argv[1],"r");
 	if(file2_ptr == NULL)
 	{
 		printf("No such file found in the directory. Please close the console and try again.\n");
