@@ -8,13 +8,6 @@
  ============================================================================
  */
 
-
-/*************Fixes ****************/
-// error checks for the file io
-// check the position logic for the binary file
-// '\o' wont work so please go with finsing the size of the file logic
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint-gcc.h>
@@ -23,24 +16,26 @@
 #include <conio.h>
 #include "file_op.h"
 
+// Last char not checked
+
 #define FILE_READ_BUFFER_SIZE 1024
 
 int main( int argc, char *argv[]) {
 
 	// Variable declarations
 	FILE *file1_ptr = NULL, *file2_ptr = NULL;
-	int64_t global_file_index= 1;
+	int64_t global_file_index= 0;
 	int64_t file1_length = 0, file2_length = 0;
 	clock_t start_time;
 
 	// Temp buffers to store the data fetched from the files
-	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE+1, sizeof(char));
-	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE+1, sizeof(char));
+	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE, sizeof(char));
+	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE, sizeof(char));
 
 	// Error check for the file1 existance
-	if(openFile(&file1_ptr,"file_1.bin", "r") == RETURN_FAIL)
+	if(openFile(&file1_ptr,argv[1], "r") == RETURN_FAIL)
 		return EXIT_FAILURE;
-	if(openFile(&file2_ptr,"file_2.bin", "r") == RETURN_FAIL)
+	if(openFile(&file2_ptr,argv[2], "r") == RETURN_FAIL)
 		return EXIT_FAILURE;
 
 	file1_length = getFilesize(file1_ptr);
@@ -58,12 +53,14 @@ int main( int argc, char *argv[]) {
 		printf("File Size is same;  File length is : %I64d Bytes\n", file1_length);
 
 	// Actual implementation starts here
-	while((!feof(file1_ptr)) && (!feof(file2_ptr)))
+	while(global_file_index < file1_length)
 	{
+		int offset = 0;
 		if((file1_length- global_file_index) >= FILE_READ_BUFFER_SIZE)
 		{
 			fgets(&temp_buffer1[0],FILE_READ_BUFFER_SIZE, file1_ptr);
 			fgets(&temp_buffer2[0],FILE_READ_BUFFER_SIZE, file2_ptr);
+			offset = FILE_READ_BUFFER_SIZE;
 		}
 		else
 		{
@@ -72,8 +69,9 @@ int main( int argc, char *argv[]) {
 				temp_buffer1[i] = fgetc(file1_ptr);
 				temp_buffer2[i] = fgetc(file2_ptr);
 			}
+			offset = file1_length- global_file_index;
 		}
-		for(int i =0; i<FILE_READ_BUFFER_SIZE; i++)
+		for(int i= 0; i<offset; i++)
 		{
 			if(temp_buffer1[i] != temp_buffer2[i])
 			{
@@ -83,11 +81,10 @@ int main( int argc, char *argv[]) {
 				goto exit;
 			}
 		}
-
-		global_file_index = global_file_index + FILE_READ_BUFFER_SIZE;
+		global_file_index += offset;
 	}
-	printf("Output : Files are Exactly same\n");
-	printf("Output : Files are not same, First most difference is at 0x%I64x position\n", global_file_index);
+	printf("Output : Files are Exactly same\n\t File was scanned till 0x%I64x position\n", global_file_index);
+
 exit:fclose(file1_ptr);		// Closing the files to make the files available for later use succesfully
 	 fclose(file2_ptr);
 	 // Freeing all the created memory to prevent stack overflow
