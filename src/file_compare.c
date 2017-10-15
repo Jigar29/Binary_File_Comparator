@@ -26,23 +26,23 @@ int main( int argc, char *argv[]) {
 	FILE *file1_ptr = NULL, *file2_ptr = NULL;
 	int64_t global_file_index= 0;
 	int64_t file1_length = 0, file2_length = 0;
-	clock_t start_time;
+	clock_t start_time, end_time;
 
-	// Temp buffers to store the data fetched from the files
-//	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE + 1, sizeof(char));
-//	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE + 1, sizeof(char));
+//	 Temp buffers to store the data fetched from the files
+	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE + 1, sizeof(char));
+	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE + 1, sizeof(char));
 
 	// Error check for the file1 existance
-	if(openFile(&file1_ptr,"file_1.bin", "rb") == RETURN_FAIL)
+	if(openFile(&file1_ptr,argv[1], "rb") == RETURN_FAIL)
 		return EXIT_FAILURE;
-	if(openFile(&file2_ptr,"file_2.bin", "rb") == RETURN_FAIL)
+	if(openFile(&file2_ptr,argv[2], "rb") == RETURN_FAIL)
 		return EXIT_FAILURE;
-
-	file1_length = getFilesize(file1_ptr);
-	file2_length = getFilesize(file2_ptr);
 
 	// Starting the clock to count number of seconds this routine take to perform comparision
 	start_time = clock();
+
+	file1_length = getFilesize(file1_ptr);
+	file2_length = getFilesize(file2_ptr);
 
 	if(file1_length != file2_length)
 	{
@@ -57,38 +57,26 @@ int main( int argc, char *argv[]) {
 	{
 		int offset = 0;
 
-		char temp_buffer1[ FILE_READ_BUFFER_SIZE + 1] = "", temp_buffer2[ FILE_READ_BUFFER_SIZE + 1] = "";
+		int64_t file_1_read_counts = fget_string(&file1_ptr, &temp_buffer1[0], FILE_READ_BUFFER_SIZE);
+		int64_t file_2_read_counts = fget_string(&file2_ptr, &temp_buffer2[0], FILE_READ_BUFFER_SIZE);
 
-		if((file1_length- global_file_index) >= FILE_READ_BUFFER_SIZE)
+		if(file_1_read_counts != file_2_read_counts)
 		{
-			int64_t file_1_read_counts = fget_string(&file1_ptr, &temp_buffer1[0], FILE_READ_BUFFER_SIZE);
-			int64_t file_2_read_counts = fget_string(&file2_ptr, &temp_buffer2[0], FILE_READ_BUFFER_SIZE);
-			if(file_1_read_counts != file_2_read_counts)
+			if(file_1_read_counts > file_2_read_counts)
 			{
-				if(file_1_read_counts > file_2_read_counts)
-				{
-					offset = file_2_read_counts;
-					fseek(file1_ptr, -(file_1_read_counts - file_2_read_counts), SEEK_CUR);
-				}
-				else
-				{
-					offset = file_1_read_counts;
-					fseek(file2_ptr, -(file_2_read_counts - file_1_read_counts), SEEK_CUR);
-				}
-
+				offset = file_2_read_counts;
+				fseek(file1_ptr, -(file_1_read_counts - file_2_read_counts), SEEK_CUR);
 			}
 			else
-				offset = file_2_read_counts;
+			{
+				offset = file_1_read_counts;
+				fseek(file2_ptr, -(file_2_read_counts - file_1_read_counts), SEEK_CUR);
+			}
+
 		}
 		else
-		{
-			for(int i=0; i<(file1_length- global_file_index);i++)
-			{
-				temp_buffer1[i] = fgetc(file1_ptr);
-				temp_buffer2[i] = fgetc(file2_ptr);
-			}
-			offset = file1_length- global_file_index;
-		}
+			offset = file_2_read_counts;
+
 		for(int i= 0; i<offset; i++)
 		{
 			if(temp_buffer1[i] != temp_buffer2[i])
@@ -106,10 +94,11 @@ int main( int argc, char *argv[]) {
 exit:fclose(file1_ptr);		// Closing the files to make the files available for later use succesfully
 	 fclose(file2_ptr);
 	 // Freeing all the created memory to prevent stack overflow
-//	 free(temp_buffer1);
-//	 free(temp_buffer2);
+	 free(temp_buffer1);
+	 free(temp_buffer2);
 
-	 printf("\n\nTotal Time taken for the computations is %lf seconds", ((double)(clock() - start_time)/ CLOCKS_PER_SEC));
+	 end_time = clock();
+	 printf("\n\nTotal Time taken for the computations is %lf seconds", ((double)(end_time - start_time)/ CLOCKS_PER_SEC));
 
 	 return EXIT_SUCCESS;
 }
