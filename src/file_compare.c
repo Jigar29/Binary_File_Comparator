@@ -29,13 +29,13 @@ int main( int argc, char *argv[]) {
 	clock_t start_time;
 
 	// Temp buffers to store the data fetched from the files
-	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE, sizeof(char));
-	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE, sizeof(char));
+//	char *temp_buffer1 = (char *)calloc(FILE_READ_BUFFER_SIZE + 1, sizeof(char));
+//	char *temp_buffer2 = (char *)calloc(FILE_READ_BUFFER_SIZE + 1, sizeof(char));
 
 	// Error check for the file1 existance
-	if(openFile(&file1_ptr,argv[1], "r") == RETURN_FAIL)
+	if(openFile(&file1_ptr,"file_1.bin", "rb") == RETURN_FAIL)
 		return EXIT_FAILURE;
-	if(openFile(&file2_ptr,argv[2], "r") == RETURN_FAIL)
+	if(openFile(&file2_ptr,"file_2.bin", "rb") == RETURN_FAIL)
 		return EXIT_FAILURE;
 
 	file1_length = getFilesize(file1_ptr);
@@ -56,11 +56,29 @@ int main( int argc, char *argv[]) {
 	while(global_file_index < file1_length)
 	{
 		int offset = 0;
+
+		char temp_buffer1[ FILE_READ_BUFFER_SIZE + 1] = "", temp_buffer2[ FILE_READ_BUFFER_SIZE + 1] = "";
+
 		if((file1_length- global_file_index) >= FILE_READ_BUFFER_SIZE)
 		{
-			fgets(&temp_buffer1[0],FILE_READ_BUFFER_SIZE, file1_ptr);
-			fgets(&temp_buffer2[0],FILE_READ_BUFFER_SIZE, file2_ptr);
-			offset = FILE_READ_BUFFER_SIZE;
+			int64_t file_1_read_counts = fget_string(&file1_ptr, &temp_buffer1[0], FILE_READ_BUFFER_SIZE);
+			int64_t file_2_read_counts = fget_string(&file2_ptr, &temp_buffer2[0], FILE_READ_BUFFER_SIZE);
+			if(file_1_read_counts != file_2_read_counts)
+			{
+				if(file_1_read_counts > file_2_read_counts)
+				{
+					offset = file_2_read_counts;
+					fseek(file1_ptr, -(file_1_read_counts - file_2_read_counts), SEEK_CUR);
+				}
+				else
+				{
+					offset = file_1_read_counts;
+					fseek(file2_ptr, -(file_2_read_counts - file_1_read_counts), SEEK_CUR);
+				}
+
+			}
+			else
+				offset = file_2_read_counts;
 		}
 		else
 		{
@@ -88,8 +106,8 @@ int main( int argc, char *argv[]) {
 exit:fclose(file1_ptr);		// Closing the files to make the files available for later use succesfully
 	 fclose(file2_ptr);
 	 // Freeing all the created memory to prevent stack overflow
-	 free(temp_buffer1);
-	 free(temp_buffer2);
+//	 free(temp_buffer1);
+//	 free(temp_buffer2);
 
 	 printf("\n\nTotal Time taken for the computations is %lf seconds", ((double)(clock() - start_time)/ CLOCKS_PER_SEC));
 

@@ -15,6 +15,6 @@
 
 RET_STATUS openFile(FILE **, char *, char *);
 int64_t getFilesize(FILE *);
-
+int64_t fget_string(FILE **, char *, int);
 
 #endif /* FILE_OP_H_ */
