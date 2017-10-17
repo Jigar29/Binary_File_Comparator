@@ -16,8 +16,6 @@
 #include <conio.h>
 #include "file_op.h"
 
-// Last char not checked
-
 #define FILE_READ_BUFFER_SIZE 1024
 
 int main( int argc, char *argv[]) {
